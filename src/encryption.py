@@ -1,9 +1,11 @@
 from math import ceil, floor
-import string
-import json
 
-ALL_LETTERS = string.printable
-# ALL_LETTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890,.-;:_¦@#°§¬|¢[]{}+\"*%&/()= °§~^'?`!"
+
+#ALL_LETTERS = string.printable # should be hardcoded and the same for ALL versions in all languages
+ALL_LETTERS = ""
+for i in range(32,127):
+    ALL_LETTERS += chr(i)
+
 INVALID = "¤"
 randtick = 1
 
@@ -45,7 +47,7 @@ def generate_keysum(key: str) -> int:
     return key_sum
 
 
-def __base_crypt(text: str, key: str, ed: str) -> str:
+def __base_crypt(text: str, key: str, mode: str) -> str:
     key_sum = generate_keysum(key)
     key_i = (round(len(key) / 3) + key_sum) % len(key)
     output = ""
@@ -61,10 +63,8 @@ def __base_crypt(text: str, key: str, ed: str) -> str:
             char = INVALID
         char_val = letters.index(char)
 
-        if ed == "e":
-            encrypted_val = (char_val + key_val) % len(letters)
-        else:
-            encrypted_val = (char_val - key_val) % len(letters)
+        
+        encrypted_val = (char_val + (key_val * mode)) % len(letters)
 
         encrypted_char = letters[encrypted_val]
 
@@ -75,19 +75,20 @@ def __base_crypt(text: str, key: str, ed: str) -> str:
 
 
 def encrypt(text: str, key: str) -> str:
-    return __base_crypt(text=text, key=key, ed="e")
+    return __base_crypt(text=text, key=key, mode=1)
 
 
 def decrypt(text: str, key: str) -> str:
-    return __base_crypt(text=text, key=key, ed="d")
+    return __base_crypt(text=text, key=key, mode=-1)
 
 
 if __name__ == "__main__":
+    import json
     v = encrypt(
         "Hello World! This is AmberChriffre. An advanced, but simple and hard-to-crack chiffre developed by ItsGraphax, originally for AmberOS in OSWars 10 for scratch. It has now been made **even** better with v2! Am I the only one who's confused tho at why the heck theres a big G and a big D in for AmberOS and been?",
         "pizzalover122",
     )
     print(v)
     print(decrypt(v, "pizzalover122"))
-    with open("data/test.json", "w") as file:
+    with open("server/data/test.json", "w") as file:
         json.dump([v], file)
