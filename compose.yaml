@@ -1,0 +1,37 @@
+# Comments are provided throughout this file to help you get started.
+# If you need more help, visit the Docker Compose reference guide at
+# https://docs.docker.com/go/compose-spec-reference/
+
+# https://github.com/docker/awesome-compose
+services:
+  server:
+    build:
+      context: .
+    ports:
+      - ${SERVER_PORT}:${SERVER_PORT}
+    environment:
+      - POSTGRES_DB_URI=${POSTGRES_DB_URI}
+      - SERVER_PORT=${SERVER_PORT}
+      - DELETE_MESSAGES_AFTER=${DELETE_MESSAGES_AFTER}
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    container_name: ${POSTGRES_DB_HOST}
+    image: postgres
+    restart: always
+    user: ${POSTGRES_USER}
+    volumes:
+      - db-data:/var/lib/postgresql
+    environment:
+      - POSTGRES_DB=${POSTGRES_DBNAME}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    expose:
+      - ${POSTGRES_DB_PORT}
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+volumes:
+  db-data:
