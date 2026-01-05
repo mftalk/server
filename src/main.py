@@ -3,7 +3,7 @@ from flask import request, jsonify, Response
 #from classes.postgresDatamanager import savemanager
 from core.classes.postgresDatamanager import db
 from core.models import Message
-from core.funcs.ensure import ensure_args, respond_error
+from core.funcs.ensure import ensure_args
 from sqlalchemy import select
 from sqlalchemy.orm import InstrumentedAttribute
 from datetime import datetime
@@ -42,7 +42,7 @@ def getMessageList():
         msgcmd = select(Message.id, Message.msgId, Message.createdOn).where(Message.createdOn > datetime.now())
     elif periodSinceId:
         if not periodSinceTimeFormat:
-            return respond_error("periodSinceId requires parameter periodSinceTimeFormat", 400)
+            return jsonify("periodSinceId requires parameter periodSinceTimeFormat"), 404
         msgcmd = select(Message).where(Message.id > datetime.strptime(periodSinceId, periodSinceTimeFormat))
 
     if format:
@@ -60,7 +60,7 @@ def getMessageList():
 def getMessagesWithIds():
     indextype = request.args.get("indextype") | request.json.indextype
     if not indextype or indextype not in ["msgId", "id"]:
-        return respond_error("you have to specific ?indextype=msgId or ?indextype=id")
+        return jsonify("you have to specific ?indextype=msgId or ?indextype=id"), 404
     indextype: Literal["msgid","id"]
 
 
@@ -86,5 +86,5 @@ def getMessagesWithIds():
         req_data.ids
         getmsgCmd = select(Message.value).where(ORM_INDEXTYPE.in_(req_data.ids))
     messages = db.session.scalars(getmsgCmd).all()
-    
+
     return jsonify(messages)
